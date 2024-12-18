@@ -1,0 +1,178 @@
+lab 1 CRC
+
+def crc(data, divisor):
+    data = [int(bit) for bit in data] + [0] * (len(divisor) - 1)
+    for i in range(len(data) - len(divisor) + 1):
+        if data[i] == 1:
+            for j in range(len(divisor)):
+                data[i + j] ^= int(divisor[j])
+    return data[-(len(divisor) - 1):]
+
+message = input("Enter message bits: ")
+generator = input("Enter generator: ")
+checksum = ''.join(map(str, crc(message, generator)))
+print(f"Checksum: {checksum}")
+received = input("Enter received message: ")
+print("Valid" if crc(received, generator) == [0] * (len(generator) - 1) else "Invalid")
+
+
+
+
+
+
+lab 2 sliding window
+
+def sliding_window(elements, window_size): 
+    for i in range(len(elements) - window_size + 1):
+        print(elements[i:i+window_size])
+n = int(input("Enter number of elements: "))
+lst = [int(input("Enter element: ")) for i in range(n)]
+print("List:", lst)
+window_size = int(input("Enter window size: "))
+print("Sliding window output:")
+sliding_window(lst, window_size)
+
+
+
+
+
+
+
+
+lab 3 bellman ford
+
+class Graph:
+    def __init__(self, vertices): self.V, self.graph = vertices, []
+    def addEdge(self, u, v, w): self.graph.append((u, v, w))
+    def BellmanFord(self, src):
+        dist = [float('inf')] * self.V
+        dist[src] = 0
+        for i in range(self.V - 1):
+            for u, v, w in self.graph:
+                if dist[u] != float('inf') and dist[u] + w < dist[v]: dist[v] = dist[u] + w
+        for u, v, w in self.graph:
+            if dist[u] != float('inf') and dist[u] + w < dist[v]: return print("Negative weight cycle")
+        print("Vertex Distance from Source"), [print(f"{i}\t\t{d}") for i, d in enumerate(dist)]
+
+n, m = int(input("Vertices: ")), int(input("Edges: "))
+g = Graph(n)
+print("u is starting node v is ending node w is weight")
+for i in range(m): g.addEdge(*map(int, input("Enter u v w: ").split()))
+g.BellmanFord(int(input("Source: ")))
+
+
+
+
+
+
+
+lab 4 RSA ALGO
+
+import random, math
+
+def is_prime(n):  
+    if n <= 1:
+        return False
+    for i in range(2, int(math.sqrt(n)) + 1):
+        if n % i == 0:
+            return False
+    return True
+def gen_prime(): 
+    return random.choice([i for i in range(2, 100) if is_prime(i)])
+def mod_inverse(e, phi):  
+    for d in range(2, phi):
+        if (d * e) % phi == 1:
+            return d
+
+p, q = gen_prime(), gen_prime()
+n, phi = p * q, (p - 1) * (q - 1)
+e = random.choice([i for i in range(2, phi) if math.gcd(i, phi) == 1])
+d = mod_inverse(e, phi)
+
+print(f"Primes: p={p}, q={q}, product(p*q) n={n}, phi={phi}, public key={e}, private key={d}")
+m = int(input("Enter message in three digits(m): "))
+c = pow(m, e, n)  
+print(f"Cipher Text (c): {c}, Decrypted (m): {pow(c, d, n)}")  
+###use common inputs like 123,234,345
+
+
+
+
+
+
+lab 5 leaky bucket
+
+storage = 0
+no_of_ticks = int(input("Enter no. of ticks: "))
+bucket_size = int(input("Enter bucket size: "))
+input_pkt_size = int(input("Enter inflow rate: "))
+output_pkt_size = int(input("Enter outflow rate: "))
+
+print("Total bucket size:", bucket_size)
+for i in range(no_of_ticks):
+    print(f"\nTime {i+1}:")
+    if input_pkt_size <= bucket_size - storage:
+        storage += input_pkt_size
+    else:
+        print("Packet loss =", input_pkt_size - (bucket_size - storage))
+        storage = bucket_size
+    print(f"Packets in bucket = {storage}, Remaining capacity = {bucket_size - storage}")
+    storage = max(0, storage - output_pkt_size)
+    print(f"After outflow, packets in bucket = {storage}")
+
+
+
+
+
+
+
+
+lab 6 client/server contents of folder
+
+import socket, os
+server = socket.socket()
+server.bind(('127.0.0.1', 5000))
+server.listen(1)
+print("Server started")
+while True:
+    client, addr = server.accept()
+    file_name = client.recv(1024).decode()
+    if os.path.isfile(file_name):
+        client.sendall(open(file_name, 'rb').read())
+    else:
+        client.sendall(b"Error: File not found.")
+    client.close()
+
+import socket
+client = socket.socket()
+client.connect(('127.0.0.1', 5000))
+client.sendall(input("Enter file name: ").encode())
+data = client.recv(1024)
+print(data.decode() if b"Error" in data else f"File contents:\n{data.decode()}")
+client.close()
+
+
+
+
+
+
+lab 7 client/server text message
+
+import socket
+server = socket.socket()
+server.bind((socket.gethostname(), 5000))
+server.listen(1)
+conn, addr = server.accept()
+print(f"Connected by {addr}")
+while (msg := conn.recv(1024).decode()) != "bye":
+    print(f"Client: {msg}")
+conn.close()
+
+import socket
+client = socket.socket()
+client.connect((socket.gethostname(), 5000))
+while (msg := input("You: ")) != "byee":
+    client.send(msg.encode())
+client.close()
+
+### execpt 'bye' type anything
